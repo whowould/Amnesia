@@ -1,6 +1,7 @@
 #include <windows.h>
 
 #include "features/aimbot.hpp"
+#include "features/movement.hpp"
 #include "features/players.hpp"
 #include "overlay/overlay.hpp"
 #include "sdk/cache.hpp"
@@ -99,6 +100,7 @@ auto main() -> int
 
     threads::get().start("players", amnesia::features::log_players);
     threads::get().start("aimbot", amnesia::features::run_aimbot);
+    threads::get().start("movement", amnesia::features::run_movement);
 
     console::ok("boot", "running — INSERT toggles menu");
     overlay::run();

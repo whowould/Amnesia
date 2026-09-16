@@ -20,6 +20,21 @@ namespace amnesia::settings
     inline float menu_y = 40.f;
     inline float menu_w = 320.f;
     inline float menu_h = 460.f;
+    inline bool vsync_disable = false;
+    inline bool streamproof = false;
+
+    namespace movement
+    {
+        inline constexpr int keys[12] = {
+            VK_RBUTTON, VK_LBUTTON, VK_MBUTTON, VK_SHIFT, VK_MENU, VK_CONTROL,
+            'X', 'C', 'V', 'Q', 'E', 'F'
+        };
+
+        inline bool walkspeed = false;
+        inline float walkspeed_value = 16.f;
+        inline int key_index = 3;
+        inline int key_mode = 1;
+    }
 
     namespace aimbot
     {

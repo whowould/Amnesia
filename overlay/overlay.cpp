@@ -456,9 +456,21 @@ namespace amnesia::overlay
             context->OMSetRenderTargets(1, &rtv, nullptr);
             context->ClearRenderTargetView(rtv, clear);
             ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
-            swapchain->Present(1, 0);
-
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            static bool last_streamproof = false;
+            if (settings::streamproof != last_streamproof && overlay_hwnd)
+            {
+                last_streamproof = settings::streamproof;
+#ifndef WDA_EXCLUDEFROMCAPTURE
+                constexpr DWORD WDA_EXCLUDEFROMCAPTURE = 0x00000011;
+#endif
+#ifndef WDA_NONE
+                constexpr DWORD WDA_NONE = 0x00000000;
+#endif
+                ::SetWindowDisplayAffinity(overlay_hwnd, settings::streamproof ? WDA_EXCLUDEFROMCAPTURE : WDA_NONE);
+            }
+            swapchain->Present(settings::vsync_disable ? 0u : 1u, 0);
+            if (!settings::vsync_disable)
+                std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
 
         ImGui_ImplDX11_Shutdown();

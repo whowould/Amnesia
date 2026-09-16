@@ -122,7 +122,7 @@ namespace amnesia::features
             if (is_accessory(name) || is_root(name))
                 return false;
             if (has_named(player, "Torso") && !has_named(player, "UpperTorso"))
-                return is_r6_body(name);
+                return name != "Head" && is_r6_body(name);
             if (has_named(player, "UpperTorso") || has_named(player, "LowerTorso"))
                 return is_r15_body(name);
             if (has_named(player, "Chest") || has_named(player, "Abdomen"))
@@ -187,15 +187,34 @@ namespace amnesia::features
             return hits;
         }
 
-        auto expand_head(const vector3_t& pos, const matrix4_t& vm, const vector2_t& screen, vector2_t& bmin, vector2_t& bmax) -> int
+        auto expand_r6_head(const part_t& head, const part_t* torso, const matrix4_t& vm, const vector2_t& screen, vector2_t& bmin, vector2_t& bmax) -> int
         {
-            constexpr auto rx = 0.62f;
-            constexpr auto ry = 0.72f;
-            constexpr auto rz = 0.62f;
+            vector3_t world_up{ 0.f, 1.f, 0.f };
+            if (torso)
+            {
+                const auto local_up = rotate(torso->cframe.rotation, { 0.f, 1.f, 0.f });
+                if (local_up.length() > 0.001f)
+                    world_up = local_up * (1.f / local_up.length());
+            }
+
+            auto center = head.cframe.position;
+            if (torso)
+            {
+                const auto torso_top = torso->cframe.position + world_up * ((std::max)(torso->size.y, 2.f) * 0.5f);
+                center = torso_top + world_up * 0.62f;
+            }
+            else
+            {
+                center = head.cframe.position - world_up * 0.4f;
+            }
+
+            constexpr auto hx = 0.58f;
+            constexpr auto hy = 0.58f;
+            constexpr auto hz = 0.58f;
             const vector3_t pts[6] = {
-                { pos.x + rx, pos.y, pos.z }, { pos.x - rx, pos.y, pos.z },
-                { pos.x, pos.y + ry, pos.z }, { pos.x, pos.y - ry, pos.z },
-                { pos.x, pos.y, pos.z + rz }, { pos.x, pos.y, pos.z - rz },
+                center + vector3_t{ hx, 0.f, 0.f }, center - vector3_t{ hx, 0.f, 0.f },
+                center + world_up * hy, center - world_up * hy,
+                center + vector3_t{ 0.f, 0.f, hz }, center - vector3_t{ 0.f, 0.f, hz },
             };
 
             auto hits = 0;
@@ -255,13 +274,19 @@ namespace amnesia::features
                 if (!posed(part))
                     continue;
 
-                const auto used = (r6 && part.name == "Head")
-                    ? expand_head(part.cframe.position, shot.viewmatrix, screen, bmin, bmax)
-                    : expand_obb(part, shot.viewmatrix, screen, bmin, bmax);
+                const auto used = expand_obb(part, shot.viewmatrix, screen, bmin, bmax);
                 if (used <= 0)
                     continue;
                 hits += used;
                 ++body_hits;
+            }
+
+            if (r6)
+            {
+                const auto* head = find_part(player, "Head");
+                const auto* torso = find_part(player, "Torso");
+                if (head && posed(*head))
+                    hits += expand_r6_head(*head, torso && posed(*torso) ? torso : nullptr, shot.viewmatrix, screen, bmin, bmax);
             }
 
             if (body_hits == 0)
@@ -285,16 +310,9 @@ namespace amnesia::features
 
                 vector3_t top = pivot->cframe.position;
                 if (head && posed(*head))
-                {
-                    auto head_h = head->size.y;
-                    if (head_h < 0.2f)
-                        head_h = 1.2f;
-                    top = head->cframe.position + up * (head_h * 0.55f);
-                }
+                    top = head->cframe.position - up * 0.15f;
                 else
-                {
-                    top = pivot->cframe.position + up * 1.6f;
-                }
+                    top = pivot->cframe.position + up * 1.15f;
 
                 const auto feet = pivot->cframe.position - up * (hip + 0.35f);
                 const auto width_world = (std::max)(1.4f, hip * 0.7f);

@@ -176,6 +176,7 @@
     <ClCompile Include="features\aimbot.cpp" />
     <ClCompile Include="features\esp.cpp" />
     <ClCompile Include="features\menu.cpp" />
+    <ClCompile Include="features\movement.cpp" />
     <ClCompile Include="features\players.cpp" />
     <ClCompile Include="overlay\overlay.cpp" />
     <ClCompile Include="sdk\cache.cpp" />
@@ -196,6 +197,7 @@
     <ClInclude Include="features\aimbot.hpp" />
     <ClInclude Include="features\esp.hpp" />
     <ClInclude Include="features\menu.hpp" />
+    <ClInclude Include="features\movement.hpp" />
     <ClInclude Include="features\players.hpp" />
     <ClInclude Include="overlay\overlay.hpp" />
     <ClInclude Include="overlay\tahoma.hpp" />
